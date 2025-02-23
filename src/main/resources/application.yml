@@ -1,6 +1,6 @@
 spring:
   application:
-    name: ${GATEWAY_SERVICE_NAME:em-gateway}  # Имя сервиса
+    name: ${SERVICE_NAME:em-gateway}
 
   docker:
     compose:
@@ -8,16 +8,15 @@ spring:
 
   cloud:
     gateway:
-      # Настройки обнаружения сервисов
       discovery:
         locator:
-          enabled: ${DISCOVERY_LOCATOR_ENABLED:true}  # Включаем автоматическое обнаружение сервисов через Eureka
-          lower-case-service-id: ${DISCOVERY_LOCATOR_LOWERCASE:true}  # Использовать нижний регистр для имен сервисов
+          enabled: ${DISCOVERY_LOCATOR_ENABLED:true}                                          # Включаем автоматическое обнаружение сервисов через Eureka
+          lower-case-service-id: ${DISCOVERY_LOCATOR_LOWERCASE:true}                          # Использовать нижний регистр для имен сервисов
 
       # Настройки HTTP клиента
       httpclient:
-        connect-timeout: ${GATEWAY_CONNECT_TIMEOUT:2000}  # Таймаут на установление соединения (мс)
-        response-timeout: ${GATEWAY_RESPONSE_TIMEOUT:5s}  # Таймаут ожидания ответа
+        connect-timeout: ${GATEWAY_CONNECT_TIMEOUT:2000}                                      # Таймаут на установление соединения (мс)
+        response-timeout: ${GATEWAY_RESPONSE_TIMEOUT:5s}                                      # Таймаут ожидания ответа
 
       # Включение метрик
       metrics:
@@ -27,11 +26,11 @@ spring:
       routes:
         # Маршрут для Collector сервиса
         - id: ${COLLECTOR_SERVICE_ID:collector-service}
-          uri: lb://${COLLECTOR_SERVICE_NAME:em-collector}  # lb:// означает использование балансировщика нагрузки
+          uri: lb://${COLLECTOR_SERVICE_NAME:em-collector}                                    # lb:// означает использование балансировщика нагрузки
           predicates:
-            - Path=${COLLECTOR_PATH:/collector/**}  # Паттерн URL для маршрутизации
+            - Path=${COLLECTOR_PATH:/collector/**}                                            # Паттерн URL для маршрутизации
           filters:
-            - StripPrefix=${COLLECTOR_STRIP_PREFIX:1}  # Удаляет первый сегмент пути (/collector)
+            - StripPrefix=${COLLECTOR_STRIP_PREFIX:1}                                         # Удаляет первый сегмент пути (/collector)
             - AddResponseHeader=X-Response-Service, ${COLLECTOR_RESPONSE_HEADER:collector}
 
         # Маршрут для Processor сервиса
@@ -63,16 +62,16 @@ spring:
 
 # Настройки сервера
 server:
-  port: ${SERVER_PORT:8080}  # Порт сервера
+  port: ${SERVER_PORT:8080}
 
 # Настройки актуатора для мониторинга
 management:
   server:
-    port: ${ACTUATOR_PORT:8180}  # Отдельный порт для эндпоинтов актуатора
+    port: ${ACTUATOR_PORT:8081}
   endpoints:
     web:
       exposure:
-        include: ${ACTUATOR_ENDPOINTS:health,info,metrics,prometheus}  # Список доступных эндпоинтов
+        include: ${ACTUATOR_ENDPOINTS:health,info,metrics,prometheus}
   endpoint:
     health:
       show-details: ${HEALTH_DETAILS_VISIBLE:always}
@@ -80,14 +79,14 @@ management:
 # Настройки Eureka клиента
 eureka:
   client:
-    register-with-eureka: ${EUREKA_REGISTER_ENABLED:true}  # Регистрация в Eureka
-    fetch-registry: ${EUREKA_FETCH_ENABLED:true}  # Получение списка сервисов
+    register-with-eureka: ${EUREKA_REGISTER_ENABLED:true}                                       # Регистрация в Eureka
+    fetch-registry: ${EUREKA_FETCH_ENABLED:true}                                                # Получение списка сервисов
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://localhost:8761/eureka/}
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://em-discovery:8761/eureka/}
   instance:
-    prefer-ip-address: ${EUREKA_PREFER_IP:false}  # Использовать IP вместо hostname
+    prefer-ip-address: ${EUREKA_PREFER_IP:false}                                                # Использовать IP вместо hostname
     instance-id: ${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}:${random.uuid}
-    lease-renewal-interval-in-seconds: ${EUREKA_HEARTBEAT_INTERVAL:30}  # Интервал отправки heartbeat
-    lease-expiration-duration-in-seconds: ${EUREKA_LEASE_EXPIRATION:90}  # Время до признания сервиса недоступным
+    lease-renewal-interval-in-seconds: ${EUREKA_HEARTBEAT_INTERVAL:30}                          # Интервал отправки heartbeat
+    lease-expiration-duration-in-seconds: ${EUREKA_LEASE_EXPIRATION:90}                         # Время до признания сервиса недоступным
     health-check-url-path: ${EUREKA_HEALTH_CHECK_PATH:/actuator/health}
     status-page-url-path: ${EUREKA_STATUS_PAGE_PATH:/actuator/info}
