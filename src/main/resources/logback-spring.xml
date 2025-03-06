@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Подключение стандартных настроек Spring Boot для логирования -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Определение переменных -->
+    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
+    <property name="SERVICE_NAME" value="em-gateway"/>
+
+    <!-- Аппендер для JSON логов (работает во всех профилях) -->
+    <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- Путь к файлу логов -->
+        <file>logs/${SERVICE_NAME}.json</file>
+
+        <!-- Политика ротации логов: ежедневно с хранением за 7 дней -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/${SERVICE_NAME}-%d{yyyy-MM-dd}.json</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+
+        <!-- Кодировщик Logstash для JSON формата -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Включение полей из MDC (Mapped Diagnostic Context) -->
+            <includeMdcKeyName>traceId</includeMdcKeyName>     <!-- ID трассировки для распределенного трейсинга -->
+            <includeMdcKeyName>spanId</includeMdcKeyName>      <!-- ID спана для распределенного трейсинга -->
+            <includeMdcKeyName>userId</includeMdcKeyName>      <!-- ID пользователя, если доступен -->
+            <includeMdcKeyName>requestId</includeMdcKeyName>   <!-- ID запроса для отслеживания -->
+
+            <!-- Настройка имен полей в JSON -->
+            <fieldNames>
+                <timestamp>timestamp</timestamp>  <!-- Временная метка события -->
+                <thread>thread</thread>           <!-- Имя потока -->
+                <message>message</message>        <!-- Сообщение лога -->
+                <logger>logger</logger>           <!-- Имя логгера -->
+                <level>level</level>              <!-- Уровень логирования -->
+            </fieldNames>
+
+            <!-- Добавление пользовательских полей в каждую запись лога -->
+            <customFields>{"service":"${SERVICE_NAME}"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- Консольный аппендер с цветным выводом (для разработки) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Паттерн форматирования с цветовым выделением -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable</pattern>
+            <!--
+                %d{yyyy-MM-dd HH:mm:ss.SSS} - дата и время
+                %highlight(%-5level) - уровень лога с цветовым выделением
+                [%blue(%t)] - имя потока синим цветом в квадратных скобках
+                %yellow(%C{1.}) - имя класса (сокращенное) желтым цветом
+                %msg - сообщение лога
+                %n - перевод строки
+                %throwable - стек-трейс исключения, если есть
+            -->
+        </encoder>
+    </appender>
+
+    <!-- Настройки для профиля разработки (dev) -->
+    <springProfile name="dev">
+        <!-- Корневой логгер с уровнем INFO -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>  <!-- Вывод в консоль -->
+            <appender-ref ref="JSON_FILE"/> <!-- Вывод в JSON файл -->
+        </root>
+
+        <!-- Специфические настройки для разных пакетов -->
+        <logger name="com.neighbor.eventmosaic" level="DEBUG"/> <!-- Наш код логируем подробно -->
+        <logger name="org.springframework" level="INFO"/> <!-- Spring фреймворк - информационные сообщения -->
+        <logger name="org.springframework.cloud.gateway" level="DEBUG"/> <!-- Gateway логируем подробно -->
+        <logger name="reactor.netty" level="INFO"/> <!-- Netty - информационные сообщения -->
+    </springProfile>
+
+    <!-- Настройки для всех остальных профилей (не dev) -->
+    <springProfile name="!dev">
+        <!-- Корневой логгер с уровнем INFO -->
+        <root level="INFO">
+            <appender-ref ref="JSON_FILE"/> <!-- Только вывод в JSON файл -->
+        </root>
+
+        <!-- Специфические настройки для разных пакетов -->
+        <logger name="com.neighbor.eventmosaic" level="INFO"/> <!-- Наш код - только информационные сообщения -->
+        <logger name="org.springframework" level="WARN"/> <!-- Spring фреймворк - только предупреждения -->
+        <logger name="org.springframework.cloud.gateway" level="INFO"/> <!-- Gateway - информационные сообщения -->
+        <logger name="reactor.netty" level="WARN"/> <!-- Netty - только предупреждения -->
+    </springProfile>
+</configuration>
