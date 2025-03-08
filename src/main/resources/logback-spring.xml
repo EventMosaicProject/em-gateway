@@ -10,11 +10,11 @@
     <!-- Аппендер для JSON логов (работает во всех профилях) -->
     <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- Путь к файлу логов -->
-        <file>logs/${SERVICE_NAME}.json</file>
+        <file>/app/logs/${SERVICE_NAME}.json</file>
 
         <!-- Политика ротации логов: ежедневно с хранением за 7 дней -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/${SERVICE_NAME}-%d{yyyy-MM-dd}.json</fileNamePattern>
+            <fileNamePattern>/app/logs/${SERVICE_NAME}-%d{yyyy-MM-dd}.json</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
 
@@ -44,7 +44,7 @@
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <!-- Паттерн форматирования с цветовым выделением -->
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%blue(%t)] %yellow(%C{1}): %msg%n%throwable</pattern>
             <!--
                 %d{yyyy-MM-dd HH:mm:ss.SSS} - дата и время
                 %highlight(%-5level) - уровень лога с цветовым выделением
