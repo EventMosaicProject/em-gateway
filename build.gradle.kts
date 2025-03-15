@@ -30,6 +30,7 @@ dependencies {
 	implementation("org.springframework.cloud:spring-cloud-starter-gateway")
 	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 	implementation("io.micrometer:micrometer-registry-prometheus")
+	implementation("net.logstash.logback:logstash-logback-encoder:${project.property("logstashLogbackEncoderVersion")}")
 
 	compileOnly("org.projectlombok:lombok")
 
